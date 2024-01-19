@@ -31,7 +31,13 @@ module.exports = {
 
         //Collecter le message de l'utilisateur et vérifier si le code est bon ou non (FAIL)
 
-         collector.on('collect', m => {
+        let essais = 0;
+
+        const filter = (userMessage) => userMessage.author.id === member.id && userMessage.content === verificationCode;
+
+        const collector = verificationCaptchaChannel.createMessageCollector(filter, { time: 60000 });
+        
+            collector.on('collect', m => {
 
             while (essais <= 3) {
                 if (m.content === codeCaptcha) {
@@ -52,6 +58,5 @@ module.exports = {
             }
 
         });
-
     }
 }       
