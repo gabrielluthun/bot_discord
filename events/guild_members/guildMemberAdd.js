@@ -37,26 +37,21 @@ module.exports = {
 
         const collector = verificationCaptchaChannel.createMessageCollector(filter, { time: 60000 });
         
-            collector.on('collect', m => {
-
-            while (essais <= 3) {
-                if (m.content === codeCaptcha) {
-                    verificationCaptchaChannel.send(`Félicitations, tu as accès au reste du serveur! Lis bien les règles et amuse toi bien!`)
-                    member.roles.add(roleMemberId);
-                    break;
-                }
-    
-                else {
-                    essais++;
-                    verificationCaptchaChannel.send(`Mauvais code, réessaye! Tu as encore ${3 - essais} essais.`)
-                    if (essais === 3) {
-                        member.kick();
-                        verificationCaptchaChannel.send(`Trop de tentatives, tu as été kick...`)
-                    }
-                }
-    
+        collector.on('collect', m => {
+            if (m.content === codeCaptcha && m.author.id === member.id) {
+                verificationCaptchaChannel.send(`Félicitations, tu as accès au reste du serveur! Lis bien les règles et amuse toi bien!`)
+                member.roles.add(roleMemberId);
+                return;
             }
-
+            else if (codeCaptcha && m.author.id === member.id){
+                verificationCaptchaChannel.send(`Mauvais code, réessaye! Tu as encore ${2 - essais} essais.`)
+                essais++;
+                if (essais === 3) {
+                    verificationCaptchaChannel.send(`Tu as échoué trop de fois, tu es kick du serveur.`)
+                    member.kick();
+                    return;
+                }
+            }
         });
     }
 }       

@@ -17,7 +17,7 @@ module.exports = {
         const prefix = '!'
         if (message.author.bot) return;
 
-        message.content = message.content.toLowerCase();
+        //message.content = message.content.toLowerCase();
         const list = ['pute', 'putain', 'merde', 'connard', 'connasse', 'fdp', 'enculé', 'merde', 'tg', 'ta gueule'];
 
         if (list.some(word => message.content.includes(word))) {
