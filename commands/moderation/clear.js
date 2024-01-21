@@ -50,19 +50,18 @@ module.exports = {
                 messages = Array.from(messages.values()).filter(m => m.author.id === filterBy); 
                 const toDelete = messages.slice(0, number).map(m => m.id); 
                 interaction.channel.bulkDelete(toDelete);
-                console.log(`${number} messages supprimés de l'utilisateur ${target}`);
+                interaction.reply({content: `${number} message(s) supprimé(s) venant de l'utilisateur ${target}`, ephemeral: true});
             })
+
         } else if(number) {
             await interaction.channel.messages.fetch({limit: number}).then(messages => { 
                 messages = Array.from(messages.values()); 
                 const toDelete = messages.slice(0, number).map(m => m.id); 
                 interaction.channel.bulkDelete(toDelete);
-                console.log(`${number} messages supprimés de l'utilisateur ${target}`);
+                interaction.reply({content: `${number} message(s) supprimé(s)`, ephemeral: true});
             })
           
         }
-
-        
 
     }
 }

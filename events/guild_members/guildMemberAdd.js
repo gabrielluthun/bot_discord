@@ -36,7 +36,7 @@ module.exports = {
         const filter = (userMessage) => userMessage.author.id === member.id && userMessage.content === verificationCode;
 
         const collector = verificationCaptchaChannel.createMessageCollector(filter, { time: 60000 });
-        
+    
         collector.on('collect', m => {
             if (m.content === codeCaptcha && m.author.id === member.id) {
                 verificationCaptchaChannel.send(`Félicitations, tu as accès au reste du serveur! Lis bien les règles et amuse toi bien!`)
