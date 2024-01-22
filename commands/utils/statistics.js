@@ -9,7 +9,7 @@ module.exports = {
 
     async runInteraction(client, interaction) {
 
-        let guild = client.guilds.cache.get('1125193054601609316');
+        let guild = client.guilds.cache.get('1195758369319960696');
         let allMembers = await guild.members.fetch();
         let members = allMembers.filter(member => !member.user.bot).size;
         let bots = allMembers.filter(member => member.user.bot).size;
