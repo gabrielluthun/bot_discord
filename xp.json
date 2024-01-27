@@ -1,0 +1,22 @@
+{
+    "322706466966601738": {
+        "level": 4,
+        "xpMax": 250,
+        "xpCurrent": 36,
+        "nextLevel": 300,
+        "xpTotal": 150,
+        "xpTotalMax": 250,
+        "xpTotalCurrent": 36,
+        "nextLevelTotal": 300
+    },
+    "371386482717622273": {
+        "level": 3,
+        "xpMax": 200,
+        "xpCurrent": 105,
+        "nextLevel": 250,
+        "xpTotal": 100,
+        "xpTotalMax": 200,
+        "xpTotalCurrent": 105,
+        "nextLevelTotal": 250
+    }
+}

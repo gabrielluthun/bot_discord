@@ -7,20 +7,20 @@ module.exports = async client => {
     (await pGlob(`${process.cwd()}/commands/*/*.js`)).map(async (cmdFiles) => {
         const cmd = require(cmdFiles);
 
-        if(!cmd.name || (!cmd.description && cmd.type !== 'USER')) return Logger.warn(`Commande non chargée:  pas de nom et/ou description\nFichier -> ${cmdFiles}\n`);
+        if (!cmd.name || (!cmd.description && cmd.type !== 'USER')) return Logger.warn(`Commande non chargée:  pas de nom et/ou description\nFichier -> ${cmdFiles}\n`);
 
-        if(!cmd.category) return Logger.warn(`Commande non chargée:  pas de cayegory -> ${cmdFiles}\n`);
+        if (!cmd.category) return Logger.warn(`Commande non chargée:  pas de cayegory -> ${cmdFiles}\n`);
 
-        if(!cmd.permissions) return Logger.warn(`Commande non chargée:  pas de permission -> ${cmdFiles}\n`);
-        
-        if(cmd.ownerOnly === undefined) return Logger.warn(`Commande non chargée:  indiquer si la commande est ownerOnly -> ${cmdFiles}\n`);
-        
-        if(!cmd.usage) return Logger.warn(`Commande non chargée:  indiquer l'usage de la commande  -> ${cmdFiles}\n`);
+        if (!cmd.permissions) return Logger.warn(`Commande non chargée:  pas de permission -> ${cmdFiles}\n`);
 
-        if(!cmd.examples) return Logger.warn(`Commande non chargée:  indiquer un exemple a la commande  -> ${cmdFiles}\n`);
+        if (cmd.ownerOnly === undefined) return Logger.warn(`Commande non chargée:  indiquer si la commande est ownerOnly -> ${cmdFiles}\n`);
+
+        if (!cmd.usage) return Logger.warn(`Commande non chargée:  indiquer l'usage de la commande  -> ${cmdFiles}\n`);
+
+        if (!cmd.examples) return Logger.warn(`Commande non chargée:  indiquer un exemple a la commande  -> ${cmdFiles}\n`);
 
         cmd.permissions.forEach(permission => {
-            if (!permissionList.includes(permission)){
+            if (!permissionList.includes(permission)) {
                 return Logger.typo(`Commande non déclenché: erreur de typo sur la permission ${permission}\nFichier -> ${cmdFiles} \n`)
             }
         });

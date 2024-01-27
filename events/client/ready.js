@@ -13,12 +13,6 @@ module.exports = {
 
         client.application.commands.set(client.commands.map(cmd => cmd));
     },
-    /* 
-        client.once('ready', () => {
-            let guildsCount = await client.guilds.fetch();
-            let usersCount = await client.guilds.cache.reduce((a, g) => a + g.memberCount, 0)
-            client.user.setPresence({ activities: [{ name: 'Lawl', type: "PLAYING"}], status: 'dnd'});
-            Logger.client(`- prêt à être utilisé par ${client.users.cache.size} utilisateurs sur ${client.guilds.cache.size} serveurs !\n`);
-        });
-    */
+
+    
 };

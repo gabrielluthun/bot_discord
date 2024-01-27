@@ -53,5 +53,23 @@ module.exports = {
                 }
             }
         });
+
+        // Lorsqu'un membre rejoint le serveur, on l'incrémente dans le fichier JSON et on lui donne l'accès au système de niveaux
+        
+            try {
+             console.log('Un nouveau membre est arrivé !');
+            } 
+            catch {
+             console.log('Erreur lors de l\'arrivée d\'un nouveau membre');
+            }
+             let xp = readXPFile();
+             if (!xp) return;
+ 
+             let user = member.id;
+             if (!xp[user]) {
+                 initializeXP(user, xp);
+                 writeXPFile(xp);
+             }
+        
     }
 }       
