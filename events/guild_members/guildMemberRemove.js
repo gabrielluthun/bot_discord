@@ -1,7 +1,9 @@
+const fs = require('fs');
+
 module.exports = {
     name: 'guildMemberRemove',
     once: false,
-    async execute(client, message) {
+    async execute(client, member) {
         
             // Lorsqu'un membre quitte le serveur, on le supprime du fichier JSON
 
@@ -13,9 +15,19 @@ module.exports = {
                     return null;
                 }
             }
+
+
+            function writeXPFile() {
+                try {
+                    fs.writeFileSync('././xp.json', JSON.stringify(xp));
+                } catch (err) {
+                    console.error('Erreur lors de l\'écriture du fichier xp.json :', err);
+                }
+            } 
        
             let xp = readXPFile();
             if (!xp) return;
+
 
             let user = member.id;
             if (xp[user]) {

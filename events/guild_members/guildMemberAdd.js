@@ -1,75 +1,141 @@
+const { log } = require("console");
 const { Collector } = require("discord.js");
+const fs = require('fs');
 
 module.exports = {
     name: 'guildMemberAdd',
     once: false,
     async execute(client, member, message) {
-        const verificationCaptchaChannelId = '1195760610848288788' //id channel
-        const roleMemberId = '1195761007411335330' //id role membre
-        const codeCaptcha = stringGen(5);
+        const verificationCodeChannelID = '1195760610848288788';
+        const verificationRoleID = '1195761007411335330';
+        const verificationCode = generateCode();
+        const verificationChannel = member.guild.channels.cache.get(verificationCodeChannelID);
+        let essais = 0;
+        const verifInvit = member.guild.channels.cache.get('1201286472410599585');
 
-        const verificationCaptchaChannel = member.guild.channels.cache.get(verificationCaptchaChannelId)
+        if (verificationChannel.type === 'GUILD_TEXT') {
+            const verificationMessage = await verificationChannel.send(`Salut ${member} ! Bienvenue sur le serveur! Pour accéder au reste du serveur, voici le code de vérification à rentrer : ${verificationCode}`);
 
-        function stringGen(codeCaptcha) {
-            //Générer le captcha aléatoirement
+            const filter = (userMessage) => userMessage.author.id === member.id && userMessage.content === verificationCode;
 
-            let charsGenerate = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-            let randomString = ''
+            const collector = verificationChannel.createMessageCollector(filter, { time: 30000 });
 
-            for (let i = 0; i < codeCaptcha; i++) {
-                let randomNum = Math.floor(Math.random() * charsGenerate.length);
-                randomString += charsGenerate.substring(randomNum, randomNum + 1);
-            }
+            collector.on('collect', async (userMessage) => {
+                const role = member.guild.roles.cache.get(verificationRoleID);
 
-            return randomString;
+                if (userMessage.content === verificationCode && userMessage.author.id === member.id) {
+                    member.roles.add(role);
+
+                    // Créer un tableau pour stocker les messages à supprimer
+                    const messagesToDelete = [userMessage, verificationMessage, await verificationChannel.send(`Félicitations ${member}, tu as accès au reste du serveur! Lis bien les règles et amuse toi bien!`)];
+
+
+
+                    // Supprimer les messages après quelques secondes (par exemple, 10 secondes)
+                    setTimeout(() => {
+                        messagesToDelete.forEach((message) => {
+                            message.delete();
+                        });
+                    }, 1000);
+
+                    // Stopper le collecteur
+                    collector.stop('verified');
+                }
+
+                else if (userMessage.content !== verificationCode && userMessage.author.id === member.id) {
+                    const messagesToDelete = [userMessage, await verificationChannel.send(`Mauvais code <@${member.id}>, réessaye! Tu as encore ${2 - essais} essais.`)];
+                    // Supprimer tous les messages dans le tableau
+                    setTimeout(() => {
+                        messagesToDelete.forEach((message) => {
+                            message.delete();
+                        });
+                    }, 1000);
+
+                    essais++;
+                    if (essais === 3) {
+                        const botMessage = await verificationChannel.send(`Tu as échoué trop de fois <@${member.id}>, tu es kick du serveur.`)
+                        messagesToDelete.push(botMessage, verificationMessage);
+                        member.kick();
+
+                        // Supprimer tous les messages dans le tableau
+                        setTimeout(() => {
+                            messagesToDelete.forEach((message) => {
+                                message.delete();
+                            });
+                        }, 1000);
+
+                        //Stopper le collector
+                        collector.stop();
+
+                        return;
+                    }
+                }
+            });
+
+            collector.on('end', (collected, reason) => {
+                if (reason === 'time') {
+                    verificationChannel.send('Verification time expired. Please retry the verification process.');
+                }
+            });
         }
 
-        //Envoyer le message de vérification dans le channel défini plus haut const verificationCaptchaChannel
 
-        verificationCaptchaChannel.send(`Salut! Bienvenue sur le serveur! Pour accéder au reste du serveur, voici le code de vérification à rentrer : ${codeCaptcha}`)
-
-
-        //Collecter le message de l'utilisateur et vérifier si le code est bon ou non (FAIL)
-
-        let essais = 0;
-
-        const filter = (userMessage) => userMessage.author.id === member.id && userMessage.content === verificationCode;
-
-        const collector = verificationCaptchaChannel.createMessageCollector(filter, { time: 60000 });
-    
-        collector.on('collect', m => {
-            if (m.content === codeCaptcha && m.author.id === member.id) {
-                verificationCaptchaChannel.send(`Félicitations, tu as accès au reste du serveur! Lis bien les règles et amuse toi bien!`)
-                member.roles.add(roleMemberId);
-                return;
+        function generateCode() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let code = '';
+            for (let i = 0; i < 5; i++) {
+                code += characters.charAt(Math.floor(Math.random() * characters.length));
             }
-            else if (codeCaptcha && m.author.id === member.id){
-                verificationCaptchaChannel.send(`Mauvais code, réessaye! Tu as encore ${2 - essais} essais.`)
-                essais++;
-                if (essais === 3) {
-                    verificationCaptchaChannel.send(`Tu as échoué trop de fois, tu es kick du serveur.`)
-                    member.kick();
-                    return;
-                }
-            }
-        });
+            return code;
+        }
 
         // Lorsqu'un membre rejoint le serveur, on l'incrémente dans le fichier JSON et on lui donne l'accès au système de niveaux
-        
+
+        let xp = readXPFile();
+        if (!xp) return;
+
+        let user = member.id;
+        if (!xp[user]) {
+            initializeXP(user, xp);
+            writeXPFile(xp);
+        }
+
+
+
+
+        function readXPFile() {
             try {
-             console.log('Un nouveau membre est arrivé !');
-            } 
-            catch {
-             console.log('Erreur lors de l\'arrivée d\'un nouveau membre');
+                return JSON.parse(fs.readFileSync('././xp.json'));
+            } catch (err) {
+                console.error('Erreur lors de la lecture du fichier xp.json :', err);
+                return null;
             }
-             let xp = readXPFile();
-             if (!xp) return;
- 
-             let user = member.id;
-             if (!xp[user]) {
-                 initializeXP(user, xp);
-                 writeXPFile(xp);
-             }
-        
+
+            function writeXPFile() {
+                try {
+                    fs.writeFileSync('././xp.json', JSON.stringify(xp));
+                } catch (err) {
+                    console.error('Erreur lors de l\'écriture du fichier xp.json :', err);
+                }
+            }
+        }
+  
+        try {
+            const guildInvites = await member.guild.invites.fetch();
+            const invitations = client.invites[member.guild.id];
+            client.invites[member.guild.id] = guildInvites;
+            const invite = guildInvites.find(i => invitations.get(i.code).uses);
+
+            // Vérifiez que 'invite' est défini
+            if (invite) {
+                const inviter = client.users.cache.get(invite.inviter.id);
+                verifInvit.send(`${member.user.username} a été invité par ${inviter.username}`);
+            } else {
+                verifInvit.send(`Impossible de déterminer qui a invité ${member.user.username}`);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+
     }
-}       
+}

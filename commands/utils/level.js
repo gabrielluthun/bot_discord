@@ -17,7 +17,7 @@ module.exports = {
     ownerOnly: false,
     usage: 'level',
     examples: ['level @Shivii'],
-    description: 'Voir tes statistiques de quelqu\'un',
+    description: 'Voir les statistiques de quelqu\'un',
     async run(client, message, args) {
         let xp = readXPFile();
         let user = message.mentions.users.first() || message.author;
@@ -40,8 +40,7 @@ module.exports = {
             .setTitle('Statistiques de ' + user.username)
             .addField('Niveau', level.toString(), true)
             .addField('XP', xpCurrent.toString() + '/' + xpMax.toString(), true)
-            .addField('XP Total', xpTotalCurrent.toString() + '/' + xpTotalMax.toString(), true)
-            .setFooter({ text: `Prochain niveau dans ${xpRemaining} XP` })
+            .setFooter({ text: `Prochain niveau dans ${xpRemaining} XP`})
             .setColor('RANDOM');
         message.channel.send({ embeds: [embed] });
     },
@@ -67,7 +66,7 @@ module.exports = {
             .setTitle('Statistiques de ' + user.username)
             .addField('Niveau', level.toString(), true)
             .addField('XP', xpCurrent.toString() + '/' + xpMax.toString(), true)
-            .setFooter({ text: `Prochain niveau dans ${xpRemaining} XP` })
+            .setFooter({ text: `Prochain niveau dans ${xpRemaining} XP`})
             .setColor('RANDOM');
         message.channel.send({ embeds: [embed] });
     },
@@ -98,12 +97,10 @@ module.exports = {
             return;
         }
 
-        
-
         const embed = new MessageEmbed()
             .setTitle('Statistiques de ' + username)
             .addField('Niveau', level.toString(), true)
-            .addField('XP', xpCurrent.toString(), true)
+            .addField('XP', xpCurrent.toString() + '/' + xpMax.toString(), true)
             .setFooter({ text: `Prochain niveau dans ${xpRemaining} XP`})
             .setColor('RANDOM');
         interaction.reply({ embeds: [embed] });
