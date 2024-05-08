@@ -92,16 +92,14 @@ module.exports = {
         // Lorsqu'un membre rejoint le serveur, on l'incrémente dans le fichier JSON et on lui donne l'accès au système de niveaux
 
         let xp = readXPFile();
-        if (!xp) return;
+        if (!xp || member.user.bot) return;
 
         let user = member.id;
         if (!xp[user]) {
             initializeXP(user, xp);
             writeXPFile(xp);
-        }
-
-
-
+        } 
+        
 
         function readXPFile() {
             try {

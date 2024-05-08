@@ -13,6 +13,7 @@ module.exports = {
         if (message.content.toLowerCase().includes('tue')) message.reply('lipe');
         if (message.content.toLowerCase().endsWith('tue')) message.reply('lipe');
         if (message.content.toLowerCase().startsWith('yo' || 'yoo' || 'yooo' || 'yoooo' || 'yooooo')) message.reply('plait');
+        if(message.content.toLowerCase().includes('nude' || 'nudes')) message.reply('T\'as cru que j\'étais ta chienne ou quoi ?');
 
 
         const prefix = '!'
@@ -51,7 +52,7 @@ module.exports = {
             fs.writeFileSync('././warn.json', JSON.stringify(warns));
         }
 
-        // Système d'XP et de niveaux (70-129)
+        // Système d'XP et de niveaux
         let xp = readXPFile();
         let user = message.author.id;
         let xpAdd = Math.floor(Math.random() * 3) + 2;
