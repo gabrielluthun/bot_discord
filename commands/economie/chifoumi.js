@@ -9,28 +9,38 @@ module.exports = {
     usage: 'ppc',
     examples: ['ppc'],
     description: 'Joue à Pierre Feuille Ciseaux contre le bot',
-    async run(client, message, args) {
+    async runInteraction(client, interaction) {
         // Lecture du solde de l'utilisateur
-        let currentUserBalance = JSON.parse(fs.readFileSync('balance.json'));
-        let userBalance = currentUserBalance[message.author.id].solde;
+        let currentUserBalance;
+        try {
+            currentUserBalance = JSON.parse(fs.readFileSync('balance.json'));
+        } catch (error) {
+            console.error('Erreur lors de la lecture du fichier balance.json:', error);
+            return;
+        }
+        let userBalance = currentUserBalance[interaction.user.id]?.solde;
 
         // Vérification du solde de l'utilisateur
-        if (userBalance < 50) {
+        if (!userBalance || userBalance < 50) {
             let ppcError = new MessageEmbed()
                 .setTitle('Pierre Feuille Ciseaux')
                 .setDescription('Désolé, vous n\'avez pas assez de pièces pour jouer. Le coût de participation est de 50 pièces. Attendez d\'avoir plus de pièces pour jouer.')
                 .setColor('RED');
-            return message.channel.send({ embeds: [ppcError] });
+            return interaction.channel.send({ embeds: [ppcError] });
         }
 
         // Demande de la mise de l'utilisateur
-        message.channel.send("Combien de pièces voulez-vous parier ?");
+        let embedMessage = new MessageEmbed()
+            .setTitle('C\'est l\'heure du DUEL !')
+            .setDescription('Indique ta mise juste ici  ! *(min. 100 pièces)*')
+            .setColor('BLUE');
+        await interaction.channel.send({ embeds: [embedMessage] });
 
         // Crée un filtre pour les messages qui vérifie si l'auteur du message est l'utilisateur qui a lancé la commande
-        const filterBet = m => m.author.id === message.author.id;
+        const filterBet = m => m.author.id === interaction.user.id;
 
         // Attend un message de l'utilisateur qui passe le filtre, avec un délai de 60 secondes
-        const collected = await message.channel.awaitMessages({ filter: filterBet, max: 1, time: 60000 });
+        const collected = await interaction.channel.awaitMessages({ filter: filterBet, max: 1, time: 60000 });
 
         // Convertit le contenu du premier message collecté en nombre entier pour obtenir la mise de l'utilisateur
         const bet = parseInt(collected.first().content);
@@ -41,12 +51,17 @@ module.exports = {
                 .setTitle('Pierre Feuille Ciseaux')
                 .setDescription('Veuillez réécrire la commande `!ppc`, puis entrer un nombre valide et suffisant.')
                 .setColor('RED');
-            return message.channel.send({ embeds: [ppcBetError] });
+            return interaction.channel.send({ embeds: [ppcBetError] });
         }
 
         // Déduction de la mise du solde de l'utilisateur
-        currentUserBalance[message.author.id].solde -= bet;
-        fs.writeFileSync('balance.json', JSON.stringify(currentUserBalance));
+        currentUserBalance[interaction.user.id].solde -= bet;
+        try {
+            fs.writeFileSync('balance.json', JSON.stringify(currentUserBalance, null, 2));
+        } catch (error) {
+            console.error('Erreur lors de l\'écriture du fichier balance.json:', error);
+            return;
+        }
 
         // Création du sondage pour le choix de l'utilisateur
         let ppcPoll = new MessageEmbed()
@@ -56,15 +71,15 @@ module.exports = {
             .addField('Feuille', '✋', true)
             .addField('Ciseaux', '✌️', true)
             .setColor('BLUE');
-        let pollMessage = await message.channel.send({ embeds: [ppcPoll] });
+        let pollMessage = await interaction.channel.send({ embeds: [ppcPoll] });
         await pollMessage.react('✊');
         await pollMessage.react('✋');
         await pollMessage.react('✌️');
 
         // Attente du choix de l'utilisateur
-        const filterChoice = (reaction, user) => ['✊', '✋', '✌️'].includes(reaction.emoji.name) && user.id === message.author.id;
+        const filterChoice = (reaction, user) => ['✊', '✋', '✌️'].includes(reaction.emoji.name) && user.id === interaction.user.id;
         const userReaction = await pollMessage.awaitReactions({ filter: filterChoice, max: 1, time: 60000 });
-        const userChoice = userReaction.first().emoji.name;
+        const userChoice = userReaction.first()?.emoji.name;
 
         // Mapping du choix de l'utilisateur
         const choixUtilisateur = userChoice === '✊' ? 'pierre' : userChoice === '✋' ? 'feuille' : 'ciseaux';
@@ -83,27 +98,39 @@ module.exports = {
 
         // Mise à jour du solde de l'utilisateur en fonction du résultat
         if (gagnant === 'utilisateur') {
-            currentUserBalance[message.author.id].solde += bet * 1.2;
-            fs.writeFileSync('balance.json', JSON.stringify(currentUserBalance));
+            let multiplier = Math.round((Math.random() * (2.5 - 1.5) + 1.5) * 100) / 100;
+            let gain = Math.round(bet * multiplier);
+            currentUserBalance[interaction.user.id].solde += gain;
+            try {
+                fs.writeFileSync('balance.json', JSON.stringify(currentUserBalance, null, 2));
+            } catch (error) {
+                console.error('Erreur lors de l\'écriture du fichier balance.json:', error);
+                return;
+            }
             let ppcGagne = new MessageEmbed()
                 .setTitle('Pierre Feuille Ciseaux')
-                .setDescription(`Vous avez gagné ! Vous remportez ${bet * 1.2} pièces.`)
+                .setDescription(`Vous avez gagné ! Vous remportez ${gain.toLocaleString('fr-FR')} pièces (multiplicateur : x${multiplier}).`)
                 .setColor('GREEN');
-            message.channel.send({ embeds: [ppcGagne] });
+            interaction.channel.send({ embeds: [ppcGagne] });
         } else if (gagnant === 'bot') {
             let ppcPerdu = new MessageEmbed()
                 .setTitle('Pierre Feuille Ciseaux')
-                .setDescription(`Vous avez perdu ! Vous perdez ${bet} pièces.`)
+                .setDescription(`Vous avez perdu ! Vous perdez ${bet.toLocaleString('fr-FR')} pièces.`)
                 .setColor('RED');
-            message.channel.send({ embeds: [ppcPerdu] });
+            interaction.channel.send({ embeds: [ppcPerdu] });
         } else if (gagnant === 'égalité') {
-            currentUserBalance[message.author.id].solde += bet;
-            fs.writeFileSync('balance.json', JSON.stringify(currentUserBalance));
+            currentUserBalance[interaction.user.id].solde += bet;
+            try {
+                fs.writeFileSync('balance.json', JSON.stringify(currentUserBalance, null, 2));
+            } catch (error) {
+                console.error('Erreur lors de l\'écriture du fichier balance.json:', error);
+                return;
+            }
             let ppcEgalite = new MessageEmbed()
                 .setTitle('Pierre Feuille Ciseaux')
-                .setDescription(`C'est une égalité ! Vous récupérez votre mise de ${bet} pièces.`)
+                .setDescription(`C'est une égalité ! Vous récupérez votre mise de ${bet.toLocaleString('fr-FR')} pièces.`)
                 .setColor('YELLOW');
-            message.channel.send({ embeds: [ppcEgalite] });
+            interaction.channel.send({ embeds: [ppcEgalite] });
         }
     }
 };
