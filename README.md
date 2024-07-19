@@ -21,11 +21,9 @@ PeacefulBot offers a range of features divided into several categories:
 
 ## How to get started
 
-To start using PeacefulBot on your Discord server, follow these simple steps:
+To start using PeacefulBot on your Discord server, follow this single simple step:
 
-1. **Invite the bot to your server**: Use the invitation link (to be provided by the bot owner) to add PeacefulBot to your Discord server.
-2. **Configure the bot**: Use the `!setup` command to configure the bot according to your server's needs.
-3. **Exploring commands**: Type `!help` for a list of all available commands and how to use them.
+**Invite the bot to your server**: Use the invitation link (to be provided by the bot owner) to add PeacefulBot to your Discord server.
 
 ## Commands
 Here are a few example commands to get you started:
